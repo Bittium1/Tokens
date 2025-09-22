@@ -2,3 +2,7 @@ build/
 out/
 .idea
 .gradle/
+
+# Temporary test files
+/tmp/test_*.sh
+test_*.txt
