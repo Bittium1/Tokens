@@ -11,8 +11,13 @@ suspend fun main(args: Array<String>) {
 
     val fileToCheck = File(args[0])
 
+    // Enhanced validation with detailed debug information
+    if (!fileToCheck.exists()) {
+        error("fileToCheck ($fileToCheck) does not exist\nAbsolute path: ${fileToCheck.absolutePath}\nExpected to be under: ${allNetworksTokenDir.absolutePath}")
+    }
+
     if (!fileToCheck.isFile) {
-        error("fileToCheck ($fileToCheck) is not a file")
+        error("fileToCheck ($fileToCheck) is not a file\nAbsolute path: ${fileToCheck.absolutePath}\nIs directory: ${fileToCheck.isDirectory}")
     }
 
     val parentFile = fileToCheck.parentFile
@@ -21,7 +26,18 @@ suspend fun main(args: Array<String>) {
         println("checking $fileToCheck")
         checkTokenFile(fileToCheck, true, getChainId(parentFile.name))
     } else {
+        // Provide detailed debug information for ignored files
+        val parentPath = parentFile?.absolutePath ?: "null"
+        val grandParentPath = parentFile?.parentFile?.absolutePath ?: "null"
+        val expectedPath = allNetworksTokenDir.absolutePath
+        
         println("ignoring $fileToCheck")
+        println("Debug info:")
+        println("  File path: ${fileToCheck.absolutePath}")
+        println("  Parent path: $parentPath")
+        println("  Grandparent path: $grandParentPath")
+        println("  Expected tokens dir: $expectedPath")
+        println("  Parent matches expected: ${parentFile?.parentFile?.absolutePath == expectedPath}")
     }
 
 }

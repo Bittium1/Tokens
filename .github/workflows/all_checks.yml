@@ -31,8 +31,36 @@ jobs:
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "Checking file: $file"
+            
+            # Pre-validation: Check if file exists
+            if [ ! -f "$file" ]; then
+              echo "Warning: File $file does not exist, skipping..."
+              continue
+            fi
+            
+            # Pre-validation: Check if file is in tokens directory
+            if [[ "$file" != tokens/* ]]; then
+              echo "Info: File $file is not in tokens directory, skipping onChainCheck..."
+              continue
+            fi
+            
+            # Pre-validation: Check if it's a JSON file
+            if [[ "$file" != *.json ]]; then
+              echo "Info: File $file is not a JSON file, skipping onChainCheck..."
+              continue
+            fi
+            
+            # Pre-validation: Check directory structure (should be tokens/network/address.json)
+            dir_parts=$(echo "$file" | tr '/' '\n' | wc -l)
+            if [ "$dir_parts" -ne 3 ]; then
+              echo "Info: File $file does not follow tokens/network/address.json structure, skipping onChainCheck..."
+              continue
+            fi
+            
+            echo "Running onChainCheck for: $file"
             ./gradlew onChainCheck -PfileToCheck=$file --info --stacktrace || {
-              echo "Failed to check $file"
+              echo "Error: Failed to check $file"
+              echo "This indicates a validation issue with the token file content or structure."
               exit 1
             }
           done
